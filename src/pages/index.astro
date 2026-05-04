@@ -14,122 +14,157 @@ import '../styles/global.css';
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
+      /* Sidebar Styles */
       .sidebar-container { transition: width 0.3s ease; }
-      .sidebar-container.collapsed { width: 4rem; }
+      .sidebar-container.collapsed { width: 5rem; } 
       .sidebar-container.collapsed .menu-text { display: none; }
-      .sidebar-container:not(.collapsed) .menu-text { display: block; }
-      .sidebar-container .rail-icon { transition: transform 0.3s ease; }
-      .sidebar-container.collapsed .rail-icon { transform: rotate(180deg); }
       
-      /* Dropdown custom scrollbar */
-      #empresa-list::-webkit-scrollbar { width: 6px; }
-      #empresa-list::-webkit-scrollbar-track { background: #1e293b; }
-      #empresa-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-      #empresa-list::-webkit-scrollbar-thumb:hover { background: #64748b; }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #0f172a; }
+      ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+      
+      /* Company Dropdown Styles */
+      .company-selector-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: #1e293b; /* slate-800 */
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #334155;
+      }
+      .company-selector-btn:hover { background: #334155; border-color: #475569; }
+      .company-selector-btn.active { background: #1e293b; border-color: #ef4444; }
+      
+      .company-dropdown-content {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        right: 0;
+        background: #1e293b; /* slate-800 */
+        border: 1px solid #334155;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+        z-index: 60;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.2s ease-out;
+        pointer-events: none;
+      }
+      
+      .company-dropdown-content.open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+      
+      .company-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .company-item:hover { background: #0f172a; }
+      .company-item.active { background: #dc2626; color: white; }
+      .company-item.active .text-slate-400 { color: #fee2e2; }
+      
+      /* Map Container */
+      #map { height: 500px; z-index: 1; border-radius: 0.5rem; }
     </style>
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased">
     <div class="flex h-screen overflow-hidden">
       
-      <!-- Sidebar Dupla (Estilo Walkline) -->
-      <aside class="sidebar-container w-72 bg-slate-900 border-r border-slate-800 flex flex-row fixed h-full z-50 overflow-hidden">
+      <!-- Sidebar -->
+      <aside class="sidebar-container w-72 bg-slate-900 border-r border-slate-800 flex flex-col fixed h-full z-50">
         
-        <!-- Coluna Esquerda: Ícones (Rail) -->
-        <div class="w-16 flex flex-col items-center py-6 border-r border-slate-800 bg-slate-900 shrink-0">
-          <button id="sidebar-toggle" class="w-full flex justify-center p-2 mb-6 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Recolher Menu">
-            <svg class="rail-icon w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
+        <!-- Sidebar Header: Company Selector -->
+        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800 relative">
+          <!-- Collapse Button -->
+          <button id="sidebar-toggle" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
           </button>
 
-          <nav class="flex-1 space-y-6 w-full px-3">
-            <button onclick="changePage('inicio')" class="rail-btn w-full flex justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="inicio" title="Início">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          <!-- Company Selector Button -->
+          <div class="menu-text flex-1 ml-2 relative">
+            <!-- O botão que clica para abrir/fechar -->
+            <button id="company-selector-btn" class="company-selector-btn">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shrink-0">
+                  <span class="text-xs font-bold text-white">F</span>
+                </div>
+                <span class="text-sm font-medium text-white truncate">Empresas...</span>
+              </div>
+              <svg id="company-arrow" class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
-            <button onclick="changePage('empresas')" class="rail-btn w-full flex justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="empresas" title="Empresas">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-            </button>
-            <button onclick="changePage('equipamentos')" class="rail-btn w-full flex justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="equipamentos" title="Equipamentos">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
-            </button>
-            <button onclick="changePage('veiculos')" class="rail-btn w-full flex justify-center p-2 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="veiculos" title="Veículos">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            </button>
-            <button class="w-full flex justify-center p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors mt-auto" title="Configurações">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            </button>
-          </nav>
-        </div>
-
-        <!-- Coluna Direita: Menu de Texto -->
-        <div class="menu-text flex-1 flex flex-col h-full bg-slate-900 overflow-y-auto custom-scrollbar">
-          
-          <!-- Header do Menu com Dropdown de Empresas -->
-          <div class="px-6 py-6 border-b border-slate-800 relative">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Menu Principal</span>
-            </div>
             
-            <!-- Dropdown Trigger -->
-            <div class="relative">
-              <button id="empresa-dropdown-btn" class="flex items-center gap-2 text-white font-semibold cursor-pointer hover:text-slate-200 transition-colors w-full text-left py-1">
-                <span id="empresa-dropdown-label">Empresas</span>
-                <svg id="empresa-dropdown-arrow" class="w-4 h-4 text-slate-500 ml-auto transition-transform duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              
-              <!-- Dropdown Menu -->
-              <div id="empresa-dropdown" class="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-2xl overflow-hidden hidden z-50">
-                <div class="p-2 border-b border-slate-700">
-                  <div class="relative">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    <input type="text" id="empresa-search" placeholder="Pesquisar empresa..." class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                  </div>
+            <!-- Company Dropdown Menu (Abre com a busca e lista juntas) -->
+            <div id="company-dropdown" class="company-dropdown-content">
+              <!-- Busca -->
+              <div class="p-2 border-b border-slate-700 bg-slate-800">
+                <div class="relative">
+                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  <input type="text" id="company-search" placeholder="Pesquisar empresa..." class="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors">
                 </div>
-                <div id="empresa-list" class="max-h-64 overflow-y-auto py-1">
-                  <!-- Lista injetada via JS -->
-                </div>
+              </div>
+              <!-- Lista de Empresas -->
+              <div id="company-list" class="overflow-y-auto max-h-60 py-1 bg-slate-800">
+                <!-- Items injetados via JS -->
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Lista de Navegação -->
-          <nav class="flex-1 px-4 py-4 space-y-1">
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" data-tab="inicio">
-              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              <span>Início</span>
-            </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" data-tab="empresas">
-              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-              <span>Empresas</span>
-            </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" data-tab="equipamentos">
-              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
-              <span>Equipamentos</span>
-            </a>
-            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" data-tab="veiculos">
-              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-              <span>Veículos</span>
-            </a>
-          </nav>
+        <!-- Sidebar Navigation -->
+        <nav class="menu-text flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-red-600/10 text-red-500 transition-all" data-tab="inicio">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            <span>Início</span>
+          </a>
+          
+          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="empresa">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            <span>Empresas</span>
+          </a>
+          
+          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="equipamento">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+            <span>Equipamentos</span>
+          </a>
+          
+          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="veiculo">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+            <span>Veículos</span>
+          </a>
+        </nav>
 
-          <!-- Footer do Menu -->
-          <div class="p-4 border-t border-slate-800">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">F</div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-white truncate">Admin</p>
-                <p class="text-xs text-slate-500 truncate">admin@fleettrack.com</p>
-              </div>
-              <button class="text-slate-400 hover:text-white shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></button>
+        <!-- Sidebar Footer -->
+        <div class="menu-text p-4 border-t border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">F</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-white truncate">Admin</p>
+              <p class="text-xs text-slate-500 truncate">admin@fleettrack.com</p>
             </div>
+            <button class="text-slate-400 hover:text-white shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></button>
           </div>
         </div>
       </aside>
 
       <!-- Main Content -->
       <main class="flex-1 ml-72 flex flex-col min-w-0 bg-slate-950 transition-all duration-300" id="main-content">
+        <!-- Top Header -->
         <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-40">
-          <div class="flex items-center gap-4"></div>
+          <div class="flex items-center gap-4">
+            <h2 class="text-lg font-semibold text-white" id="header-title">Dashboard</h2>
+          </div>
           <div class="flex items-center gap-4">
             <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -138,72 +173,108 @@ import '../styles/global.css';
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
               <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-medium">4</span>
             </button>
-            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-sm font-medium text-white cursor-pointer hover:bg-red-700 transition-colors">F</div>
+            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-sm font-medium text-white cursor-pointer">F</div>
           </div>
         </header>
 
+        <!-- Content Area -->
         <div class="flex-1 overflow-auto p-6">
           <div class="max-w-[1600px] mx-auto space-y-6">
-            <div class="mb-4">
-              <h1 class="text-xl font-semibold text-white mb-1" id="page-title">Dashboard</h1>
-              <p class="text-sm text-slate-400" id="page-subtitle">Visualize e acompanhe sua frota em tempo real através do mapa interativo.</p>
-            </div>
-
-            <div id="dashboard-content">
-              <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 mb-6">
-                <div class="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 class="text-lg font-semibold text-white">Status de Transmissão</h2>
-                    <p class="text-sm text-slate-400 mt-1">Distribuição dos veículos conforme o tempo desde seu último sinal.</p>
+            
+            <!-- Dashboard View -->
+            <div id="dashboard-view">
+              <!-- Stats Cards -->
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+                  <h3 class="text-sm font-semibold text-white mb-1">0h à 1h</h3>
+                  <div class="relative w-24 h-24 mx-auto my-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="100" id="circle-0-1" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-xl font-bold text-white" id="count-0-1">0</span>
+                    </div>
                   </div>
-                  <button class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
-                    Filtrar por Empresa
-                  </button>
+                  <p class="text-sm font-semibold text-emerald-400" id="percent-0-1">0%</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                    <h3 class="text-sm font-semibold text-white mb-1">0h à 1h</h3><p class="text-xs text-slate-400 mb-4">Maio de 2026</p>
-                    <div class="relative w-32 h-32 mx-auto mb-4"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8" /><circle cx="60" cy="60" r="54" fill="none" stroke="#22c55e" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="243.5" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-bold text-white">447</span><span class="text-xs text-slate-400">Veículos</span></div></div>
-                    <p class="text-sm font-semibold text-emerald-400">28.11%</p><p class="text-xs text-slate-400 mt-1">do total de veículos</p>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+                  <h3 class="text-sm font-semibold text-white mb-1">1h à 6h</h3>
+                  <div class="relative w-24 h-24 mx-auto my-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#84cc16" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="200" id="circle-1-6" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-xl font-bold text-white" id="count-1-6">0</span>
+                    </div>
                   </div>
-                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                    <h3 class="text-sm font-semibold text-white mb-1">1h à 6h</h3><p class="text-xs text-slate-400 mb-4">Maio de 2026</p>
-                    <div class="relative w-32 h-32 mx-auto mb-4"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8" /><circle cx="60" cy="60" r="54" fill="none" stroke="#84cc16" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="305.4" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-bold text-white">159</span><span class="text-xs text-slate-400">Veículos</span></div></div>
-                    <p class="text-sm font-semibold text-lime-400">10.00%</p><p class="text-xs text-slate-400 mt-1">do total de veículos</p>
+                  <p class="text-sm font-semibold text-lime-400" id="percent-1-6">0%</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+                  <h3 class="text-sm font-semibold text-white mb-1">6h à 24h</h3>
+                  <div class="relative w-24 h-24 mx-auto my-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="150" id="circle-6-24" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-xl font-bold text-white" id="count-6-24">0</span>
+                    </div>
                   </div>
-                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                    <h3 class="text-sm font-semibold text-white mb-1">6h à 24h</h3><p class="text-xs text-slate-400 mb-4">Maio de 2026</p>
-                    <div class="relative w-32 h-32 mx-auto mb-4"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8" /><circle cx="60" cy="60" r="54" fill="none" stroke="#f59e0b" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="307.2" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-bold text-white">150</span><span class="text-xs text-slate-400">Veículos</span></div></div>
-                    <p class="text-sm font-semibold text-amber-400">9.43%</p><p class="text-xs text-slate-400 mt-1">do total de veículos</p>
+                  <p class="text-sm font-semibold text-amber-400" id="percent-6-24">0%</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+                  <h3 class="text-sm font-semibold text-white mb-1">24h à 48h</h3>
+                  <div class="relative w-24 h-24 mx-auto my-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#f97316" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="220" id="circle-24-48" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-xl font-bold text-white" id="count-24-48">0</span>
+                    </div>
                   </div>
-                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                    <h3 class="text-sm font-semibold text-white mb-1">24h à 48h</h3><p class="text-xs text-slate-400 mb-4">Maio de 2026</p>
-                    <div class="relative w-32 h-32 mx-auto mb-4"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8" /><circle cx="60" cy="60" r="54" fill="none" stroke="#f97316" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="331.1" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-bold text-white">39</span><span class="text-xs text-slate-400">Veículos</span></div></div>
-                    <p class="text-sm font-semibold text-orange-400">2.45%</p><p class="text-xs text-slate-400 mt-1">do total de veículos</p>
+                  <p class="text-sm font-semibold text-orange-400" id="percent-24-48">0%</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
+                  <h3 class="text-sm font-semibold text-white mb-1">48h +</h3>
+                  <div class="relative w-24 h-24 mx-auto my-4">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#1e293b" stroke-width="8" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#ef4444" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="50" id="circle-48-plus" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-xl font-bold text-white" id="count-48-plus">0</span>
+                    </div>
                   </div>
-                  <div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center">
-                    <h3 class="text-sm font-semibold text-white mb-1">48h +</h3><p class="text-xs text-slate-400 mb-4">Maio de 2026</p>
-                    <div class="relative w-32 h-32 mx-auto mb-4"><svg class="w-full h-full transform -rotate-90" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="#1e293b" stroke-width="8" /><circle cx="60" cy="60" r="54" fill="none" stroke="#ef4444" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="183.6" /></svg><div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-2xl font-bold text-white">731</span><span class="text-xs text-slate-400">Veículos</span></div></div>
-                    <p class="text-sm font-semibold text-red-400">45.97%</p><p class="text-xs text-slate-400 mt-1">do total de veículos</p>
-                  </div>
+                  <p class="text-sm font-semibold text-red-400" id="percent-48-plus">0%</p>
                 </div>
               </div>
+
+              <!-- Map -->
               <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
                 <div class="flex items-center justify-between mb-4">
-                  <div><h2 class="text-lg font-semibold text-white">Mapa de Monitoramento</h2><p class="text-sm text-slate-400 mt-1">Visualize e acompanhe sua frota em tempo real através do mapa interativo.</p></div>
-                  <div class="flex items-center gap-3"><label class="text-sm text-slate-400">Mapa:</label><select id="map-type" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600"><option value="osm">OpenStreetMap</option><option value="satellite">Satélite (Dark)</option></select></div>
+                  <h2 class="text-lg font-semibold text-white">Mapa de Monitoramento</h2>
+                  <div class="flex items-center gap-3">
+                    <label class="text-sm text-slate-400">Mapa:</label>
+                    <select id="map-type" class="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600">
+                      <option value="osm">OpenStreetMap</option>
+                      <option value="satellite">Satélite (Dark)</option>
+                    </select>
+                  </div>
                 </div>
-                <div id="map" class="relative w-full h-[500px] bg-slate-800 rounded-lg overflow-hidden z-0 border border-slate-700"></div>
+                <div id="map" class="rounded-lg overflow-hidden border border-slate-700"></div>
               </div>
             </div>
 
-            <div id="list-content" class="hidden space-y-4">
-              <div id="tabs-container" class="flex items-center gap-1 border-b border-slate-800 mb-4"></div>
-              <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+            <!-- List View (Hidden by default) -->
+            <div id="list-view" class="hidden space-y-4">
+              <!-- Toolbar -->
+              <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div class="flex items-center gap-3 w-full lg:w-auto">
                   <div class="relative flex-1 lg:flex-initial">
-                    <input type="text" id="search-input" placeholder="Filtrar..." class="w-full lg:w-64 pl-4 pr-10 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent" />
+                    <input type="text" id="search-input" placeholder="Filtrar..." class="w-full lg:w-64 pl-4 pr-10 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-600" />
                     <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                   </div>
                   <button class="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors">
@@ -212,37 +283,33 @@ import '../styles/global.css';
                   </button>
                 </div>
                 <div class="flex items-center gap-3 w-full lg:w-auto">
-                  <button class="hidden flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-colors" id="btn-mass-commands">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    Comandos em Massa
-                  </button>
                   <button id="btn-add" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors shadow-lg shadow-red-900/50">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span id="btn-add-text">Adicionar</span>
                   </button>
                 </div>
               </div>
+
+              <!-- Table -->
               <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
-                  <table class="w-full text-sm"><thead class="bg-slate-800/50 border-b border-slate-800"><tr id="table-header"></tr></thead><tbody class="divide-y divide-slate-800" id="table-body"></tbody></table>
+                  <table class="w-full text-sm">
+                    <thead class="bg-slate-800/50 border-b border-slate-800">
+                      <tr id="table-header"></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="table-body"></tbody>
+                  </table>
                 </div>
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-4 py-3 border-t border-slate-800 bg-slate-800/30">
-                  <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2"><label class="text-xs text-slate-400">Fileiras Por Página</label><select class="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-xs text-white focus:outline-none focus:ring-2 focus:ring-red-600"><option>25</option><option>50</option><option>100</option></select></div>
-                    <span class="text-xs text-slate-400">Total de itens: <strong class="text-white" id="total-items">0</strong></span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-400">Página <strong class="text-white">1</strong> de <strong class="text-white" id="total-pages">1</strong></span>
-                    <div class="flex items-center gap-1">
-                      <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg></button>
-                      <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                      <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
-                      <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg></button>
-                    </div>
+                <div class="flex items-center justify-between px-4 py-3 border-t border-slate-800 bg-slate-800/30">
+                  <span class="text-xs text-slate-400">Total: <strong class="text-white" id="total-items">0</strong></span>
+                  <div class="flex items-center gap-1">
+                    <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
+                    <button class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
                   </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </main>
@@ -256,266 +323,428 @@ import '../styles/global.css';
           <button class="close text-slate-400 hover:text-white transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <form id="modal-form" class="p-6 space-y-4">
+          <input type="hidden" name="_id" id="modal-item-id" />
           <div id="modal-fields" class="grid grid-cols-2 gap-4"></div>
           <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
             <button type="button" id="modal-cancel" class="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">Cancelar</button>
-            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-lg shadow-red-900/50">Salvar</button>
+            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">Salvar</button>
           </div>
         </form>
       </div>
     </div>
 
     <script>
-      const empresas = [
-        { nomeFantasia: "Altis Tec", razaoSocial: "ALTIS TECNOLOGIA LTDA" },
-        { nomeFantasia: "Anjo Da Guarda Rastreamento", razaoSocial: "Anjo Da Guarda Rastreamento LTDA" },
-        { nomeFantasia: "Arqueiros Rastreamento E Telemetria", razaoSocial: "Arqueiros Rastreamento E Telemetria LTDA" },
-        { nomeFantasia: "Aventis Locadora", razaoSocial: "AVENTIS CAR LOCADORA DE VEICULOS LTDA" },
-        { nomeFantasia: "Belém Sat", razaoSocial: "BELEM SAT RASTREAMENTO LTDA" },
-        { nomeFantasia: "Card", razaoSocial: "CARD TECNOLOGIA LTDA" },
-        { nomeFantasia: "Click Gps", razaoSocial: "CLICK GPS RASTREAMENTO LTDA" },
-        { nomeFantasia: "Cootrecem", razaoSocial: "COOTRECEM COOPERATIVA" },
-        { nomeFantasia: "DS Refrigeração", razaoSocial: "DS REFRIGERAÇÃO AUTOMOTIVA LTDA" },
-        { nomeFantasia: "Defense Associacao De Protecao Veicular", razaoSocial: "DEFENSE ASSOCIACAO DE PROTECAO VEICULAR" },
-        { nomeFantasia: "Duo Protectyn", razaoSocial: "DUO PROTECTYN RASTREAMENTO LTDA" },
-        { nomeFantasia: "Valtracker Ltda", razaoSocial: "VALTRACKER LTDA" }
-      ];
-
-      const equipamentos = [
-        { empresa: "Defense Associacao De Protecao Veicular", modelo: "GS900", imei: "865190072028015", chipPrimario: "5531976141112", ultimaPosicao: "03/05/2026 00:01", chipSecundario: "N/A", cliente: "Não especificado", status: "Livre", dataCriacao: "30/04/2026 14:23" },
-        { empresa: "Defense Associacao De Protecao Veicular", modelo: "GS900", imei: "865190072026977", chipPrimario: "5531976141104", ultimaPosicao: "02/05/2026 20:50", chipSecundario: "N/A", cliente: "Caio Vinicius Da Silva Santos", status: "Vinculado", dataCriacao: "29/04/2026 10:07" },
-        { empresa: "Valtracker Ltda", modelo: "ITS 4G", imei: "866557081341614", chipPrimario: "16995659055", ultimaPosicao: "02/05/2026 18:22", chipSecundario: "N/A", cliente: "Sharley Gomes Da Silva", status: "Vinculado", dataCriacao: "28/04/2026 16:12" }
-      ];
-
-      const veiculos = [
-        { empresa: "Defense Associacao De Protecao Veicular", proprietario: "Patricia Alves Vieira Santos", marca: "duke", modelo: "ktm200", placa: "FLT5D54", equipamentoPrincipal: "Nenhum", chipPrincipal: "Não especificado", ultimaPosicao: "Sem localização", dataCriacao: "30/04/2026" },
-        { empresa: "Altis Tec", proprietario: "Juliana Christina De O Araujo", marca: "Renault", modelo: "KWID OUTSIDER 1.0 FLEX 12V 5P MEC.", placa: "REU8358", equipamentoPrincipal: "869731056367618", chipPrincipal: "5516994941942", ultimaPosicao: "13/04/2026 19:09", dataCriacao: "30/04/2026" },
-        { empresa: "Defense Associacao De Protecao Veicular", proprietario: "Caio Vinicius Da Silva Santos", marca: "volkswagen", modelo: "TIGUAN", placa: "EPW7H88", equipamentoPrincipal: "865190072026977", chipPrincipal: "5531976141104", ultimaPosicao: "02/05/2026 20:50", dataCriacao: "29/04/2026" },
-        { empresa: "Valtracker Ltda", proprietario: "Sharley Gomes Da Silva", marca: "Volkswagen", modelo: "Amarok 3.0 V6 Extreme", placa: "81341614", equipamentoPrincipal: "866557081341614", chipPrincipal: "16995659055", ultimaPosicao: "02/05/2026 18:22", dataCriacao: "28/04/2026" }
-      ];
-
+      // --- CONFIGURATION ---
       const pagesConfig = {
-        inicio: { title: "Dashboard", subtitle: "Visualize e acompanhe sua frota em tempo real através do mapa interativo.", isDashboard: true },
-        empresas: { title: "Empresas", subtitle: "Lista de Empresas Registradas", tabs: ["Empresas"], searchPlaceholder: "Filtrar por nome fantasia...", btnAddText: "Adicionar Empresa", showMassCommands: false, totalItems: 62, totalPages: 3,
-          columns: [{ key: "nomeFantasia", label: "Nome Fantasia", sortable: true }, { key: "razaoSocial", label: "Razão Social", sortable: true }, { key: "gatewayIntegrado", label: "Gateway Integrado", sortable: false }, { key: "empresaMae", label: "Empresa Mãe", sortable: false }, { key: "dataCriacao", label: "Data de Criação", sortable: true }, { key: "criadoPor", label: "Criado por", sortable: false }, { key: "subdominio", label: "Subdomínio", sortable: true }, { key: "status", label: "Status", sortable: false }, { key: "statusFinanceiro", label: "Status Financeiro", sortable: false }, { key: "actions", label: "", sortable: false }],
-          modalFields: [{ name: "nomeFantasia", label: "Nome Fantasia", type: "text" }, { name: "razaoSocial", label: "Razão Social", type: "text" }, { name: "subdominio", label: "Subdomínio", type: "text" }]
-        },
-        equipamentos: { title: "Equipamentos", subtitle: "Lista de Equipamentos Registrados", tabs: ["Equipamentos", "Modelos de Equipamento", "Fornecedores", "Cartões RFID"], searchPlaceholder: "Filtrar por IMEI...", btnAddText: "Adicionar Equipamento", showMassCommands: true, totalItems: 2291, totalPages: 92,
-          columns: [{ key: "empresa", label: "Nome da Empresa", sortable: true }, { key: "modelo", label: "Modelo do Equipamento", sortable: false }, { key: "imei", label: "IMEI", sortable: true }, { key: "chipPrimario", label: "Chip Primário", sortable: false }, { key: "ultimaPosicao", label: "Última Posição", sortable: false }, { key: "chipSecundario", label: "Chip Secundário", sortable: false }, { key: "cliente", label: "Cliente", sortable: false }, { key: "status", label: "Status", sortable: false }, { key: "dataCriacao", label: "Data de Criação", sortable: true }],
-          modalFields: [{ name: "imei", label: "IMEI", type: "text" }, { name: "modelo", label: "Modelo", type: "text" }, { name: "chipPrimario", label: "Chip Primário", type: "text" }]
-        },
-        veiculos: { title: "Veículos", subtitle: "Lista de Veículos Registrados", tabs: ["Veículos", "Periféricos", "Área de Segurança", "Ranking", "Vincular Equipamentos"], searchPlaceholder: "Filtrar pelo cliente...", btnAddText: "Adicionar Veículo", showMassCommands: false, totalItems: 1636, totalPages: 66,
-          columns: [{ key: "empresa", label: "Nome da Empresa", sortable: true }, { key: "proprietario", label: "Proprietário", sortable: false }, { key: "marca", label: "Marca", sortable: false }, { key: "modelo", label: "Modelo", sortable: false }, { key: "placa", label: "Placa", sortable: false }, { key: "equipamentoPrincipal", label: "Equipamento Principal", sortable: false }, { key: "chipPrincipal", label: "Chip Principal", sortable: false }, { key: "ultimaPosicao", label: "Última Posição", sortable: false }, { key: "dataCriacao", label: "Data de Criação", sortable: true }],
-          modalFields: [{ name: "placa", label: "Placa", type: "text" }, { name: "marca", label: "Marca", type: "text" }, { name: "modelo", label: "Modelo", type: "text" }, { name: "proprietario", label: "Proprietário", type: "text" }]
-        }
+        inicio: { title: "Dashboard", isDashboard: true },
+        empresa: { title: "Empresas", apiName: 'empresa', fields: ['nomeFantasia', 'razaoSocial', 'subdominio'] },
+        equipamento: { title: "Equipamentos", apiName: 'equipamento', fields: ['imei', 'modelo', 'chipPrimario'] },
+        veiculo: { title: "Veículos", apiName: 'veiculo', fields: ['placa', 'marca', 'modelo', 'proprietario'] }
       };
 
       let currentPage = "inicio";
+      let empresaAtiva = null;
       let map = null, markers = [], osmLayer = null, satelliteLayer = null;
-      const veiculosMapa = [
-        { id: 1, placa: "FLT5D54", lat: -23.5505, lng: -46.6333, status: "offline", empresa: "Defense Associacao" },
-        { id: 2, placa: "REU8358", lat: -22.9068, lng: -43.1729, status: "online", empresa: "Altis Tec" },
-        { id: 3, placa: "EPW7H88", lat: -19.9167, lng: -43.9345, status: "online", empresa: "Defense Associacao" },
-        { id: 4, placa: "81341614", lat: -25.4284, lng: -49.2733, status: "online", empresa: "Valtracker Ltda" },
-        { id: 5, placa: "83637118", lat: -23.9618, lng: -46.3295, status: "warning", empresa: "Valtracker Ltda" },
-        { id: 6, placa: "FZW0G26", lat: -21.7587, lng: -43.3478, status: "online", empresa: "Defense Associacao" },
-        { id: 7, placa: "BZF2E31", lat: -20.7739, lng: -44.6739, status: "online", empresa: "Defense Associacao" },
-        { id: 8, placa: "PLK125", lat: -23.6821, lng: -46.8755, status: "offline", empresa: "Arqueiros Rastreamento" }
-      ];
-
-      // --- SIDEBAR TOGGLE ---
-      document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
-        const sidebar = document.querySelector('.sidebar-container');
-        const mainContent = document.getElementById('main-content');
-        sidebar.classList.toggle('collapsed');
-        if (sidebar.classList.contains('collapsed')) { mainContent.classList.remove('ml-72'); mainContent.classList.add('ml-16'); } 
-        else { mainContent.classList.remove('ml-16'); mainContent.classList.add('ml-72'); }
-      });
-
-      // --- EMPRESA DROPDOWN ---
-      const dropdownBtn = document.getElementById('empresa-dropdown-btn');
-      const dropdown = document.getElementById('empresa-dropdown');
-      const dropdownArrow = document.getElementById('empresa-dropdown-arrow');
-      const searchInput = document.getElementById('empresa-search');
-      const empresaList = document.getElementById('empresa-list');
-      const dropdownLabel = document.getElementById('empresa-dropdown-label');
-
-      function renderEmpresaList(filter = '') {
-        const filtered = empresas.filter(e => 
-          e.nomeFantasia.toLowerCase().includes(filter.toLowerCase()) || 
-          e.razaoSocial.toLowerCase().includes(filter.toLowerCase())
-        );
-        empresaList.innerHTML = filtered.length ? filtered.map(empresa => `
-          <button class="empresa-item w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-700 transition-colors text-left" data-name="${empresa.nomeFantasia}">
-            <div class="w-8 h-8 rounded bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0 border border-slate-600">
-              ${empresa.nomeFantasia.substring(0, 2).toUpperCase()}
-            </div>
-            <span class="text-sm text-slate-200 truncate">${empresa.nomeFantasia}</span>
-          </button>
-        `).join('') : `<div class="px-3 py-4 text-center text-sm text-slate-500">Nenhuma empresa encontrada</div>`;
-      }
-
-      dropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isOpen = !dropdown.classList.contains('hidden');
-        dropdown.classList.toggle('hidden');
-        dropdownArrow.classList.toggle('rotate-180');
-        if (!isOpen) { searchInput.value = ''; searchInput.focus(); renderEmpresaList(); }
-      });
-
-      searchInput.addEventListener('input', (e) => renderEmpresaList(e.target.value));
-      document.addEventListener('click', (e) => {
-        if (!dropdown.contains(e.target) && !dropdownBtn.contains(e.target)) {
-          dropdown.classList.add('hidden'); dropdownArrow.classList.remove('rotate-180');
-        }
-      });
-      empresaList.addEventListener('click', (e) => {
-        const item = e.target.closest('.empresa-item');
-        if (item) { dropdownLabel.textContent = item.dataset.name; dropdown.classList.add('hidden'); dropdownArrow.classList.remove('rotate-180'); }
-      });
-
-      // --- RENDER FUNCTIONS ---
-      function renderEmpresasTable() {
-        document.getElementById('table-body').innerHTML = empresas.map(e => `
-          <tr class="hover:bg-slate-800/50 transition-colors">
-            <td class="px-4 py-3 text-slate-300">${e.nomeFantasia}</td>
-            <td class="px-4 py-3 text-slate-300">${e.razaoSocial}</td>
-            <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-300 border border-slate-600">Não Integrado</span></td>
-            <td class="px-4 py-3 text-slate-400">N/A</td>
-            <td class="px-4 py-3 text-slate-400 text-xs">${e.dataCriacao || '30/04/2026'}</td>
-            <td class="px-4 py-3 text-slate-300">Admin master</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${e.subdominio || 'site'}</td>
-            <td class="px-4 py-3"><button class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-emerald-500"><span class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform translate-x-5"></span></button></td>
-            <td class="px-4 py-3"><button class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors bg-emerald-500"><span class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform translate-x-5"></span></button></td>
-            <td class="px-4 py-3 text-slate-400"><button class="p-1 hover:text-white transition-colors"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button></td>
-          </tr>
-        `).join('');
-      }
-      function renderEquipamentosTable() {
-        document.getElementById('table-body').innerHTML = equipamentos.map(eq => `
-          <tr class="hover:bg-slate-800/50 transition-colors">
-            <td class="px-4 py-3 text-slate-300">${eq.empresa}</td>
-            <td class="px-4 py-3 text-slate-300">${eq.modelo}</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${eq.imei}</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${eq.chipPrimario}</td>
-            <td class="px-4 py-3"><div class="flex items-center gap-2"><button class="p-1 text-slate-400 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></button><span class="text-slate-300 text-xs">${eq.ultimaPosicao}</span></div></td>
-            <td class="px-4 py-3 text-slate-400 text-xs">${eq.chipSecundario}</td>
-            <td class="px-4 py-3 text-slate-300">${eq.cliente}</td>
-            <td class="px-4 py-3"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${eq.status === 'Livre' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}"><span class="w-1.5 h-1.5 rounded-full ${eq.status === 'Livre' ? 'bg-emerald-500' : 'bg-red-500'}"></span>${eq.status}</span></td>
-            <td class="px-4 py-3 text-slate-400 text-xs">${eq.dataCriacao}</td>
-          </tr>
-        `).join('');
-      }
-      function renderVeiculosTable() {
-        document.getElementById('table-body').innerHTML = veiculos.map(v => `
-          <tr class="hover:bg-slate-800/50 transition-colors">
-            <td class="px-4 py-3 text-slate-300">${v.empresa}</td>
-            <td class="px-4 py-3 text-slate-300">${v.proprietario}</td>
-            <td class="px-4 py-3 text-slate-300">${v.marca}</td>
-            <td class="px-4 py-3 text-slate-300">${v.modelo}</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${v.placa}</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${v.equipamentoPrincipal}</td>
-            <td class="px-4 py-3 text-slate-300 font-mono text-xs">${v.chipPrincipal}</td>
-            <td class="px-4 py-3"><div class="flex items-center gap-2">${v.ultimaPosicao !== 'Sem localização' ? `<button class="p-1 text-slate-400 hover:text-white transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></button>` : ''}<span class="text-slate-300 text-xs">${v.ultimaPosicao}</span></div></td>
-            <td class="px-4 py-3 text-slate-400 text-xs">${v.dataCriacao}</td>
-          </tr>
-        `).join('');
-      }
-      function renderTableHeader(columns) {
-        document.getElementById('table-header').innerHTML = columns.map(c => `
-          <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider ${c.sortable ? 'cursor-pointer hover:text-white transition-colors' : ''}">
-            ${c.sortable ? `<div class="flex items-center gap-1">${c.label}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg></div>` : c.label}
-          </th>
-        `).join('');
-      }
-      function renderTabs(tabs) {
-        document.getElementById('tabs-container').innerHTML = tabs.map((t, i) => `<button class="tab px-4 py-2 text-sm font-medium ${i === 0 ? 'active text-white border-b-2 border-red-600' : 'text-slate-400 hover:text-white'} transition-colors">${t}</button>`).join('');
-      }
-
-      // --- MAP ---
-      function initMap() {
-        if (map) { map.invalidateSize(); return; }
-        map = L.map('map', { center: [-14.235, -51.9253], zoom: 4, zoomControl: false, attributionControl: false });
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
-        satelliteLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '© CartoDB' });
-        osmLayer.addTo(map);
-        document.getElementById('map-type')?.addEventListener('change', (e) => {
-          if (e.target.value === 'satellite') { map.removeLayer(osmLayer); satelliteLayer.addTo(map); } 
-          else { map.removeLayer(satelliteLayer); osmLayer.addTo(map); }
-        });
-        addMarkers();
-      }
-      function addMarkers() {
-        markers.forEach(m => map.removeLayer(m)); markers = [];
-        veiculosMapa.forEach(v => {
-          let color = '#22c55e'; if (v.status === 'offline') color = '#ef4444'; if (v.status === 'warning') color = '#f59e0b';
-          const icon = L.divIcon({ className: 'custom-marker', html: `<div style="width:16px;height:16px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);animation:pulse 2s infinite;"></div>`, iconSize: [16,16], iconAnchor: [8,8] });
-          markers.push(L.marker([v.lat, v.lng], { icon }).addTo(map).bindPopup(`<div style="min-width:200px;font-family:system-ui;"><h3 style="margin:0 0 8px;font-size:14px;font-weight:600;color:#1e293b;">${v.placa}</h3><div style="font-size:12px;color:#64748b;"><p style="margin:4px 0;"><strong>Empresa:</strong> ${v.empresa}</p><p style="margin:4px 0;"><strong>Status:</strong> <span style="color:${color};font-weight:600;">${v.status === 'online' ? '● Online' : v.status === 'offline' ? '● Offline' : '● Alerta'}</span></p></div></div>`));
-        });
-        if (!document.getElementById('map-styles')) {
-          const style = document.createElement('style'); style.id = 'map-styles'; style.textContent = `@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.7}}.leaflet-popup-content-wrapper{background:white;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15)}.leaflet-popup-tip{background:white}.leaflet-container{font-family:inherit}`;
-          document.head.appendChild(style);
-        }
-      }
-
-      // --- PAGE CONTROL ---
-      function changePage(page) {
-        currentPage = page; const config = pagesConfig[page];
-        document.querySelectorAll('.nav-item').forEach(item => {
-          item.classList.remove('active', 'bg-slate-800', 'text-red-500'); item.classList.add('text-slate-400');
-          const icon = item.querySelector('svg'), text = item.querySelector('span');
-          if (icon) icon.classList.remove('text-red-500'), icon.classList.add('text-slate-500');
-          if (text) text.classList.remove('text-red-500'), text.classList.add('text-slate-400');
-        });
-        document.querySelectorAll('.rail-btn').forEach(btn => { btn.classList.remove('text-red-500', 'bg-slate-800'); btn.classList.add('text-slate-500'); });
-
-        const activeItem = document.querySelector(`.nav-item[data-tab="${page}"]`);
-        if (activeItem) {
-          activeItem.classList.add('active', 'bg-slate-800', 'text-red-500');
-          const icon = activeItem.querySelector('svg'), text = activeItem.querySelector('span');
-          if (icon) icon.classList.remove('text-slate-500'), icon.classList.add('text-red-500');
-          if (text) text.classList.remove('text-slate-400'), text.classList.add('text-red-500');
-        }
-        const activeRail = document.querySelector(`.rail-btn[data-target="${page}"]`);
-        if (activeRail) activeRail.classList.remove('text-slate-500'), activeRail.classList.add('text-red-500', 'bg-slate-800');
-
-        document.getElementById('page-title').textContent = config.title;
-        document.getElementById('page-subtitle').textContent = config.subtitle;
-        const dash = document.getElementById('dashboard-content'), list = document.getElementById('list-content');
-        if (config.isDashboard) { dash.classList.remove('hidden'); list.classList.add('hidden'); setTimeout(initMap, 100); } 
-        else { dash.classList.add('hidden'); list.classList.remove('hidden');
-          document.getElementById('search-input').placeholder = config.searchPlaceholder;
-          document.getElementById('btn-add-text').textContent = config.btnAddText;
-          const btnMass = document.getElementById('btn-mass-commands');
-          if (config.showMassCommands) btnMass.classList.remove('hidden'), btnMass.classList.add('flex');
-          else btnMass.classList.add('hidden'), btnMass.classList.remove('flex');
-          document.getElementById('total-items').textContent = config.totalItems;
-          document.getElementById('total-pages').textContent = config.totalPages;
-          renderTabs(config.tabs); renderTableHeader(config.columns);
-          if (page === 'empresas') renderEmpresasTable();
-          else if (page === 'equipamentos') renderEquipamentosTable();
-          else renderVeiculosTable();
-        }
-      }
-
-      // --- MODAL ---
-      const modal = document.getElementById('modal'), closeBtn = document.querySelector('.close'), cancelBtn = document.getElementById('modal-cancel'), addBtn = document.getElementById('btn-add');
-      function openModal() {
-        const config = pagesConfig[currentPage]; if (config.isDashboard) return;
-        document.getElementById('modal-title').textContent = `Adicionar ${config.title.slice(0, -1)}`;
-        document.getElementById('modal-fields').innerHTML = config.modalFields.map(f => `<div><label class="block text-sm font-medium text-slate-300 mb-1">${f.label}</label><input type="${f.type}" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600" required /></div>`).join('');
-        modal.classList.remove('hidden'); modal.classList.add('flex');
-      }
-      function closeModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
-      closeBtn?.addEventListener('click', closeModal); cancelBtn?.addEventListener('click', closeModal); addBtn?.addEventListener('click', openModal);
-      modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) closeModal(); });
 
       // --- INIT ---
-      document.querySelectorAll('.nav-item').forEach(item => item.addEventListener('click', (e) => { e.preventDefault(); changePage(e.currentTarget.dataset.tab); }));
-      window.changePage = changePage;
-      changePage('inicio');
+      document.addEventListener('DOMContentLoaded', () => {
+        initSidebar();
+        initCompanyDropdown();
+        changePage('inicio');
+      });
+
+      // --- SIDEBAR TOGGLE ---
+      function initSidebar() {
+        const toggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar-container');
+        const mainContent = document.getElementById('main-content');
+        
+        toggle.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+          mainContent.classList.toggle('ml-72');
+          mainContent.classList.toggle('ml-20');
+        });
+      }
+
+      // --- COMPANY DROPDOWN LOGIC (TOGGLE) ---
+      function initCompanyDropdown() {
+        const btn = document.getElementById('company-selector-btn');
+        const dropdown = document.getElementById('company-dropdown');
+        const arrow = document.getElementById('company-arrow');
+        const list = document.getElementById('company-list');
+        const search = document.getElementById('company-search');
+
+        // Toggle Dropdown ao clicar
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          
+          const isOpen = dropdown.classList.contains('open');
+          
+          if (isOpen) {
+            // Fecha
+            dropdown.classList.remove('open');
+            arrow.style.transform = 'rotate(0deg)';
+            btn.classList.remove('active');
+          } else {
+            // Abre
+            dropdown.classList.add('open');
+            arrow.style.transform = 'rotate(180deg)';
+            btn.classList.add('active');
+            
+            // Carrega dados e foca no search
+            const empresas = await fetchEmpresas();
+            renderCompanyList(empresas, search.value);
+            setTimeout(() => search.focus(), 100);
+          }
+        });
+
+        // Search Filter
+        search.addEventListener('input', async (e) => {
+          const empresas = await fetchEmpresas();
+          renderCompanyList(empresas, e.target.value);
+        });
+
+        // Close on Click Outside
+        document.addEventListener('click', (e) => {
+          if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+            dropdown.classList.remove('open');
+            arrow.style.transform = 'rotate(0deg)';
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      async function fetchEmpresas() {
+        try {
+          const res = await fetch('/api/empresa');
+          const data = await res.json();
+          return data.error ? [] : data;
+        } catch (err) { return []; }
+      }
+
+      function renderCompanyList(empresas, filter) {
+        const list = document.getElementById('company-list');
+        if (!list) return;
+
+        const filtered = filter 
+          ? empresas.filter(e => e.nomeFantasia.toLowerCase().includes(filter.toLowerCase()))
+          : empresas;
+
+        if (filtered.length === 0) {
+          list.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500 text-center">Nenhuma empresa encontrada</div>';
+          return;
+        }
+
+        // "Todas" Option
+        let html = `
+          <div class="company-item ${!empresaAtiva ? 'active' : ''}" onclick="selectCompany(null)">
+            <div class="w-8 h-8 rounded bg-slate-700 flex items-center justify-center shrink-0">
+              <span class="text-xs text-white">T</span>
+            </div>
+            <div class="flex-1">
+              <div class="text-sm font-medium text-white">Todas as Empresas</div>
+            </div>
+          </div>
+        `;
+
+        filtered.forEach(emp => {
+          const id = emp._id.$oid || emp._id;
+          const initials = emp.nomeFantasia.substring(0, 2).toUpperCase();
+          const isActive = empresaAtiva && (empresaAtiva._id === id || empresaAtiva._id.$oid === id);
+          
+          html += `
+            <div class="company-item ${isActive ? 'active' : ''}" onclick="selectCompany(${JSON.stringify(emp).replace(/"/g, '&quot;')})">
+              <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shrink-0">
+                <span class="text-xs text-white">${initials}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-white truncate">${emp.nomeFantasia}</div>
+                <div class="text-xs text-slate-400 truncate">${emp.razaoSocial}</div>
+              </div>
+            </div>
+          `;
+        });
+
+        list.innerHTML = html;
+      }
+
+      window.selectCompany = function(emp) {
+        empresaAtiva = emp;
+        const btn = document.getElementById('company-selector-btn');
+        const nameSpan = btn.querySelector('.truncate');
+        const avatar = btn.querySelector('.w-8');
+        
+        if (emp) {
+          nameSpan.textContent = emp.nomeFantasia;
+          avatar.innerHTML = `<span class="text-xs text-white">${emp.nomeFantasia.substring(0, 2).toUpperCase()}</span>`;
+        } else {
+          nameSpan.textContent = "Empresas...";
+          avatar.innerHTML = `<span class="text-xs font-bold text-white">F</span>`;
+        }
+        
+        // Fecha o dropdown após selecionar
+        const dropdown = document.getElementById('company-dropdown');
+        const arrow = document.getElementById('company-arrow');
+        dropdown.classList.remove('open');
+        arrow.style.transform = 'rotate(0deg)';
+        btn.classList.remove('active');
+        
+        // Refresh current view
+        if (currentPage === 'inicio') updateDashboard();
+        else renderTable(currentPage);
+      };
+
+      // --- NAVIGATION ---
+      window.changePage = function(page) {
+        currentPage = page;
+        const config = pagesConfig[page];
+        
+        // Update Nav Active State
+        document.querySelectorAll('.nav-item').forEach(el => {
+          if (el.dataset.tab === page) {
+            el.classList.add('active', 'bg-red-600/10', 'text-red-500');
+            el.classList.remove('text-slate-400');
+          } else {
+            el.classList.remove('active', 'bg-red-600/10', 'text-red-500');
+            el.classList.add('text-slate-400');
+          }
+        });
+
+        // Toggle Views
+        const dashView = document.getElementById('dashboard-view');
+        const listView = document.getElementById('list-view');
+        const headerTitle = document.getElementById('header-title');
+
+        headerTitle.textContent = config.title;
+
+        if (config.isDashboard) {
+          dashView.classList.remove('hidden');
+          listView.classList.add('hidden');
+          setTimeout(() => { initMap(); updateDashboard(); }, 100);
+        } else {
+          dashView.classList.add('hidden');
+          listView.classList.remove('hidden');
+          document.getElementById('btn-add-text').textContent = `Adicionar ${config.title.slice(0, -1)}`;
+          renderTable(page);
+        }
+      };
+
+      // Attach Click Events to Nav Links
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          changePage(item.dataset.tab);
+        });
+      });
+
+      // --- TABLE RENDERING ---
+      async function renderTable(type) {
+        const tbody = document.getElementById('table-body');
+        const thead = document.getElementById('table-header');
+        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">Carregando...</td></tr>';
+        
+        const config = pagesConfig[type];
+        try {
+          let items = await fetch(`/api/${config.apiName}`).then(r => r.json());
+          items = items.error ? [] : items;
+
+          // Filter by active company
+          if (empresaAtiva) {
+            const empId = empresaAtiva._id.$oid || empresaAtiva._id;
+            items = items.filter(i => i.empresaId === empId);
+          }
+
+          document.getElementById('total-items').textContent = items.length;
+
+          // Headers
+          const headers = type === 'empresa' 
+            ? ['Nome Fantasia', 'Razão Social', 'Status', 'Ações'] 
+            : type === 'equipamento' ? ['IMEI', 'Modelo', 'Status', 'Ações']
+            : ['Placa', 'Modelo', 'Proprietário', 'Ações'];
+          
+          thead.innerHTML = `<tr>${headers.map(h => `<th class="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase">${h}</th>`).join('')}</tr>`;
+
+          if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">Nenhum registro encontrado.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = items.map(item => {
+            const id = item._id.$oid || item._id;
+            let rowContent = '';
+            
+            if (type === 'empresa') {
+              rowContent = `<td class="px-6 py-4 text-white">${item.nomeFantasia}</td>
+                            <td class="px-6 py-4 text-slate-400">${item.razaoSocial}</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">${item.status ? 'Ativo' : 'Inativo'}</span></td>`;
+            } else if (type === 'equipamento') {
+              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.imei}</td>
+                            <td class="px-6 py-4 text-slate-400">${item.modelo}</td>
+                            <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status === 'Livre' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}">${item.status}</span></td>`;
+            } else {
+              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.placa}</td>
+                            <td class="px-6 py-4 text-slate-400">${item.marca} ${item.modelo}</td>
+                            <td class="px-6 py-4 text-slate-400">${item.proprietario || '-'}</td>`;
+            }
+
+            rowContent += `<td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <button onclick="editItem('${type}', '${id}')" class="text-blue-400 hover:text-blue-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                <button onclick="deleteItem('${type}', '${id}')" class="text-red-400 hover:text-red-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+              </div>
+            </td>`;
+
+            return `<tr class="hover:bg-slate-800/50 transition-colors">${rowContent}</tr>`;
+          }).join('');
+
+        } catch (err) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-400">Erro ao carregar dados.</td></tr>';
+        }
+      }
+
+      // --- CRUD ACTIONS ---
+      window.deleteItem = async function(type, id) {
+        if (!confirm('Tem certeza?')) return;
+        try {
+          await fetch(`/api/${pagesConfig[type].apiName}`, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({_id: id}) });
+          renderTable(type);
+        } catch (e) { alert('Erro ao deletar'); }
+      };
+
+      window.editItem = async function(type, id) {
+        const items = await fetch(`/api/${pagesConfig[type].apiName}`).then(r => r.json());
+        const item = items.find(i => (i._id.$oid || i._id) === id);
+        if (item) openModal(type, item);
+      };
+
+      const modal = document.getElementById('modal');
+      document.getElementById('btn-add').addEventListener('click', () => openModal(currentPage));
+      document.querySelector('.close').addEventListener('click', closeModal);
+      document.getElementById('modal-cancel').addEventListener('click', closeModal);
+      
+      function closeModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+      async function openModal(type, item = null) {
+        const config = pagesConfig[type];
+        document.getElementById('modal-title').textContent = item ? `Editar ${config.title.slice(0, -1)}` : `Adicionar ${config.title.slice(0, -1)}`;
+        document.getElementById('modal-item-id').value = item ? (item._id.$oid || item._id) : '';
+        
+        const fieldsContainer = document.getElementById('modal-fields');
+        let html = '';
+
+        // Company Select (for Equip/Veic)
+        if (type !== 'empresa') {
+          const empresas = await fetchEmpresas();
+          html += `<div class="col-span-2"><label class="block text-sm text-slate-300 mb-1">Empresa</label>
+            <select name="empresaId" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white" required>
+              <option value="">Selecione...</option>
+              ${empresas.map(e => `<option value="${e._id.$oid || e._id}" ${item && item.empresaId === (e._id.$oid || e._id) ? 'selected' : ''}>${e.nomeFantasia}</option>`).join('')}
+            </select></div>`;
+        }
+
+        config.fields.forEach(f => {
+          html += `<div><label class="block text-sm text-slate-300 mb-1 capitalize">${f}</label>
+            <input name="${f}" value="${item ? item[f] || '' : ''}" class="w-full bg-slate-800 border border-slate-700 rounded px-3 py-2 text-white" required /></div>`;
+        });
+
+        fieldsContainer.innerHTML = html;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Submit Handler
+        const form = document.getElementById('modal-form');
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        newForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(newForm));
+          const isEdit = !!data._id;
+          
+          try {
+            await fetch(`/api/${config.apiName}`, {
+              method: isEdit ? 'PUT' : 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(data)
+            });
+            closeModal();
+            renderTable(type);
+          } catch (err) { alert('Erro ao salvar'); }
+        });
+      }
+
+      // --- DASHBOARD & MAP ---
+      async function updateDashboard() {
+        try {
+          let veiculos = await fetch('/api/veiculo').then(r => r.json());
+          veiculos = veiculos.error ? [] : veiculos;
+          
+          if (empresaAtiva) {
+            const empId = empresaAtiva._id.$oid || empresaAtiva._id;
+            veiculos = veiculos.filter(v => v.empresaId === empId);
+          }
+
+          const now = new Date();
+          const counts = {'0-1':0, '1-6':0, '6-24':0, '24-48':0, '48+':0};
+          
+          veiculos.forEach(v => {
+            const date = v.ultimaPosicao ? new Date(v.ultimaPosicao) : new Date(v.dataCriacao);
+            const hours = (now - date) / 36e5;
+            if (hours <= 1) counts['0-1']++;
+            else if (hours <= 6) counts['1-6']++;
+            else if (hours <= 24) counts['6-24']++;
+            else if (hours <= 48) counts['24-48']++;
+            else counts['48+']++;
+          });
+
+          const total = veiculos.length || 1;
+          Object.keys(counts).forEach(k => {
+            document.getElementById(`count-${k}`).textContent = counts[k];
+            document.getElementById(`percent-${k}`).textContent = ((counts[k]/total)*100).toFixed(1) + '%';
+            // Update circle stroke (approx logic)
+            const circle = document.getElementById(`circle-${k}`);
+            if(circle) circle.setAttribute('stroke-dashoffset', 251.2 - (251.2 * counts[k]/total));
+          });
+
+        } catch(e) { console.error(e); }
+      }
+
+      function initMap() {
+        if (map) { map.invalidateSize(); return; }
+        map = L.map('map').setView([-14.235, -51.9253], 4);
+        osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        satelliteLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
+        
+        document.getElementById('map-type').addEventListener('change', (e) => {
+          if (e.target.value === 'satellite') { map.removeLayer(osmLayer); satelliteLayer.addTo(map); }
+          else { map.removeLayer(satelliteLayer); osmLayer.addTo(map); }
+        });
+        
+        addMarkers();
+      }
+
+      async function addMarkers() {
+        if (!map) return;
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
+        let veiculos = await fetch('/api/veiculo').then(r => r.json());
+        veiculos = veiculos.error ? [] : veiculos;
+        if (empresaAtiva) {
+          const empId = empresaAtiva._id.$oid || empresaAtiva._id;
+          veiculos = veiculos.filter(v => v.empresaId === empId);
+        }
+
+        veiculos.forEach(v => {
+          // Dummy coords for demo if not present
+          const lat = v.latitude || (Math.random() * 20 - 30); 
+          const lng = v.longitude || (Math.random() * 40 - 70);
+          
+          if (v.latitude && v.longitude) {
+            markers.push(L.marker([lat, lng]).addTo(map).bindPopup(`<b>${v.placa}</b><br>${v.marca || ''}`));
+          }
+        });
+      }
     </script>
   </body>
 </html>
