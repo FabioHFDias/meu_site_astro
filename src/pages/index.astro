@@ -31,7 +31,7 @@ import '../styles/global.css';
         justify-content: space-between;
         width: 100%;
         padding: 0.75rem 1rem;
-        background: #1e293b; /* slate-800 */
+        background: #1e293b;
         border-radius: 0.5rem;
         cursor: pointer;
         transition: all 0.2s;
@@ -45,7 +45,7 @@ import '../styles/global.css';
         top: calc(100% + 0.5rem);
         left: 0;
         right: 0;
-        background: #1e293b; /* slate-800 */
+        background: #1e293b;
         border: 1px solid #334155;
         border-radius: 0.5rem;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
@@ -82,89 +82,103 @@ import '../styles/global.css';
   <body class="bg-slate-950 text-slate-100 antialiased">
     <div class="flex h-screen overflow-hidden">
       
-      <!-- Sidebar -->
-      <aside class="sidebar-container w-72 bg-slate-900 border-r border-slate-800 flex flex-col fixed h-full z-50">
+      <!-- Sidebar Dupla -->
+      <aside class="sidebar-container w-72 bg-slate-900 border-r border-slate-800 flex flex-row fixed h-full z-50">
         
-        <!-- Sidebar Header: Company Selector -->
-        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-800 relative">
-          <!-- Collapse Button -->
-          <button id="sidebar-toggle" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" /></svg>
+        <!-- Coluna Esquerda: Ícones (Rail) -->
+        <div class="w-16 flex flex-col items-center py-6 border-r border-slate-800 bg-slate-900 shrink-0">
+          <!-- Botão Recolher -->
+          <button id="sidebar-toggle" class="w-full flex justify-center p-2 mb-6 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Recolher Menu">
+            <svg class="rail-icon w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
           </button>
 
-          <!-- Company Selector Button -->
-          <div class="menu-text flex-1 ml-2 relative">
-            <!-- O botão que clica para abrir/fechar -->
+          <!-- Ícones de Navegação -->
+          <nav class="flex-1 space-y-4 w-full px-2">
+            <button onclick="changePage('inicio')" class="rail-btn w-full flex justify-center p-2.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="inicio" title="Início">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+            </button>
+            <button onclick="changePage('empresa')" class="rail-btn w-full flex justify-center p-2.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="empresa" title="Empresas">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </button>
+            <button onclick="changePage('equipamento')" class="rail-btn w-full flex justify-center p-2.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="equipamento" title="Equipamentos">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+            </button>
+            <button onclick="changePage('veiculo')" class="rail-btn w-full flex justify-center p-2.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors" data-target="veiculo" title="Veículos">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+            </button>
+          </nav>
+
+          <!-- Configurações (Bottom) -->
+          <button class="w-full flex justify-center p-2.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition-colors mt-auto" title="Configurações">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </button>
+        </div>
+
+        <!-- Coluna Direita: Menu de Texto -->
+        <div class="menu-text flex-1 flex flex-col h-full bg-slate-900 overflow-y-auto">
+          
+          <!-- Dropdown de Empresas (Agora no topo) -->
+          <div class="px-4 py-4 border-b border-slate-800 relative">
             <button id="company-selector-btn" class="company-selector-btn">
               <div class="flex items-center gap-3 overflow-hidden">
                 <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shrink-0">
-                  <span class="text-xs font-bold text-white">F</span>
+                  <span class="text-xs font-bold text-white">T</span>
                 </div>
                 <span class="text-sm font-medium text-white truncate">Empresas...</span>
               </div>
               <svg id="company-arrow" class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
             </button>
             
-            <!-- Company Dropdown Menu (Abre com a busca e lista juntas) -->
             <div id="company-dropdown" class="company-dropdown-content">
-              <!-- Busca -->
               <div class="p-2 border-b border-slate-700 bg-slate-800">
                 <div class="relative">
                   <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  <input type="text" id="company-search" placeholder="Pesquisar empresa..." class="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500 transition-colors">
+                  <input type="text" id="company-search" placeholder="Pesquisar empresa..." class="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm text-white placeholder-slate-500 focus:outline-none focus:border-red-500">
                 </div>
               </div>
-              <!-- Lista de Empresas -->
-              <div id="company-list" class="overflow-y-auto max-h-60 py-1 bg-slate-800">
-                <!-- Items injetados via JS -->
-              </div>
+              <div id="company-list" class="overflow-y-auto max-h-60 py-1 bg-slate-800"></div>
             </div>
           </div>
-        </div>
 
-        <!-- Sidebar Navigation -->
-        <nav class="menu-text flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-red-600/10 text-red-500 transition-all" data-tab="inicio">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-            <span>Início</span>
-          </a>
-          
-          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="empresa">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-            <span>Empresas</span>
-          </a>
-          
-          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="equipamento">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
-            <span>Equipamentos</span>
-          </a>
-          
-          <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="veiculo">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-            <span>Veículos</span>
-          </a>
-        </nav>
+          <!-- Navegação por Texto -->
+          <nav class="flex-1 px-4 py-4 space-y-1">
+            <a href="#" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-red-600/10 text-red-500 transition-all" data-tab="inicio">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span>Início</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="empresa">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+              <span>Empresas</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="equipamento">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+              <span>Equipamentos</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all" data-tab="veiculo">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+              <span>Veículos</span>
+            </a>
+          </nav>
 
-        <!-- Sidebar Footer -->
-        <div class="menu-text p-4 border-t border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">F</div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-white truncate">Admin</p>
-              <p class="text-xs text-slate-500 truncate">admin@fleettrack.com</p>
+          <!-- Footer -->
+          <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white shrink-0">F</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-white truncate">Admin</p>
+                <p class="text-xs text-slate-500 truncate">admin@fleettrack.com</p>
+              </div>
             </div>
-            <button class="text-slate-400 hover:text-white shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg></button>
           </div>
         </div>
       </aside>
 
       <!-- Main Content -->
       <main class="flex-1 ml-72 flex flex-col min-w-0 bg-slate-950 transition-all duration-300" id="main-content">
-        <!-- Top Header -->
-        <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 sticky top-0 z-40">
-          <div class="flex items-center gap-4">
-            <h2 class="text-lg font-semibold text-white" id="header-title">Dashboard</h2>
-          </div>
+        <!-- Header simplificado (sem título Dashboard) -->
+        <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-end px-6 sticky top-0 z-40">
           <div class="flex items-center gap-4">
             <button class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -177,10 +191,8 @@ import '../styles/global.css';
           </div>
         </header>
 
-        <!-- Content Area -->
         <div class="flex-1 overflow-auto p-6">
           <div class="max-w-[1600px] mx-auto space-y-6">
-            
             <!-- Dashboard View -->
             <div id="dashboard-view">
               <!-- Stats Cards -->
@@ -268,9 +280,8 @@ import '../styles/global.css';
               </div>
             </div>
 
-            <!-- List View (Hidden by default) -->
+            <!-- List View -->
             <div id="list-view" class="hidden space-y-4">
-              <!-- Toolbar -->
               <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div class="flex items-center gap-3 w-full lg:w-auto">
                   <div class="relative flex-1 lg:flex-initial">
@@ -290,7 +301,6 @@ import '../styles/global.css';
                 </div>
               </div>
 
-              <!-- Table -->
               <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
                   <table class="w-full text-sm">
@@ -309,7 +319,6 @@ import '../styles/global.css';
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </main>
@@ -334,7 +343,6 @@ import '../styles/global.css';
     </div>
 
     <script>
-      // --- CONFIGURATION ---
       const pagesConfig = {
         inicio: { title: "Dashboard", isDashboard: true },
         empresa: { title: "Empresas", apiName: 'empresa', fields: ['nomeFantasia', 'razaoSocial', 'subdominio'] },
@@ -346,27 +354,26 @@ import '../styles/global.css';
       let empresaAtiva = null;
       let map = null, markers = [], osmLayer = null, satelliteLayer = null;
 
-      // --- INIT ---
       document.addEventListener('DOMContentLoaded', () => {
         initSidebar();
         initCompanyDropdown();
         changePage('inicio');
       });
 
-      // --- SIDEBAR TOGGLE ---
       function initSidebar() {
         const toggle = document.getElementById('sidebar-toggle');
         const sidebar = document.querySelector('.sidebar-container');
         const mainContent = document.getElementById('main-content');
+        const railIcon = document.querySelector('.rail-icon');
         
         toggle.addEventListener('click', () => {
           sidebar.classList.toggle('collapsed');
           mainContent.classList.toggle('ml-72');
           mainContent.classList.toggle('ml-20');
+          if (railIcon) railIcon.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
         });
       }
 
-      // --- COMPANY DROPDOWN LOGIC (TOGGLE) ---
       function initCompanyDropdown() {
         const btn = document.getElementById('company-selector-btn');
         const dropdown = document.getElementById('company-dropdown');
@@ -374,37 +381,29 @@ import '../styles/global.css';
         const list = document.getElementById('company-list');
         const search = document.getElementById('company-search');
 
-        // Toggle Dropdown ao clicar
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
-          
           const isOpen = dropdown.classList.contains('open');
           
           if (isOpen) {
-            // Fecha
             dropdown.classList.remove('open');
             arrow.style.transform = 'rotate(0deg)';
             btn.classList.remove('active');
           } else {
-            // Abre
             dropdown.classList.add('open');
             arrow.style.transform = 'rotate(180deg)';
             btn.classList.add('active');
-            
-            // Carrega dados e foca no search
             const empresas = await fetchEmpresas();
             renderCompanyList(empresas, search.value);
             setTimeout(() => search.focus(), 100);
           }
         });
 
-        // Search Filter
         search.addEventListener('input', async (e) => {
           const empresas = await fetchEmpresas();
           renderCompanyList(empresas, e.target.value);
         });
 
-        // Close on Click Outside
         document.addEventListener('click', (e) => {
           if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
             dropdown.classList.remove('open');
@@ -426,43 +425,29 @@ import '../styles/global.css';
         const list = document.getElementById('company-list');
         if (!list) return;
 
-        const filtered = filter 
-          ? empresas.filter(e => e.nomeFantasia.toLowerCase().includes(filter.toLowerCase()))
-          : empresas;
+        const filtered = filter ? empresas.filter(e => e.nomeFantasia.toLowerCase().includes(filter.toLowerCase())) : empresas;
 
         if (filtered.length === 0) {
           list.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500 text-center">Nenhuma empresa encontrada</div>';
           return;
         }
 
-        // "Todas" Option
-        let html = `
-          <div class="company-item ${!empresaAtiva ? 'active' : ''}" onclick="selectCompany(null)">
-            <div class="w-8 h-8 rounded bg-slate-700 flex items-center justify-center shrink-0">
-              <span class="text-xs text-white">T</span>
-            </div>
-            <div class="flex-1">
-              <div class="text-sm font-medium text-white">Todas as Empresas</div>
-            </div>
-          </div>
-        `;
+        let html = `<div class="company-item ${!empresaAtiva ? 'active' : ''}" onclick="selectCompany(null)">
+          <div class="w-8 h-8 rounded bg-slate-700 flex items-center justify-center shrink-0"><span class="text-xs text-white">T</span></div>
+          <div class="flex-1"><div class="text-sm font-medium text-white">Todas as Empresas</div></div>
+        </div>`;
 
         filtered.forEach(emp => {
           const id = emp._id.$oid || emp._id;
           const initials = emp.nomeFantasia.substring(0, 2).toUpperCase();
           const isActive = empresaAtiva && (empresaAtiva._id === id || empresaAtiva._id.$oid === id);
-          
-          html += `
-            <div class="company-item ${isActive ? 'active' : ''}" onclick="selectCompany(${JSON.stringify(emp).replace(/"/g, '&quot;')})">
-              <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shrink-0">
-                <span class="text-xs text-white">${initials}</span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-white truncate">${emp.nomeFantasia}</div>
-                <div class="text-xs text-slate-400 truncate">${emp.razaoSocial}</div>
-              </div>
+          html += `<div class="company-item ${isActive ? 'active' : ''}" onclick="selectCompany(${JSON.stringify(emp).replace(/"/g, '&quot;')})">
+            <div class="w-8 h-8 rounded bg-red-600 flex items-center justify-center shrink-0"><span class="text-xs text-white">${initials}</span></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-white truncate">${emp.nomeFantasia}</div>
+              <div class="text-xs text-slate-400 truncate">${emp.razaoSocial}</div>
             </div>
-          `;
+          </div>`;
         });
 
         list.innerHTML = html;
@@ -479,29 +464,25 @@ import '../styles/global.css';
           avatar.innerHTML = `<span class="text-xs text-white">${emp.nomeFantasia.substring(0, 2).toUpperCase()}</span>`;
         } else {
           nameSpan.textContent = "Empresas...";
-          avatar.innerHTML = `<span class="text-xs font-bold text-white">F</span>`;
+          avatar.innerHTML = `<span class="text-xs font-bold text-white">T</span>`;
         }
         
-        // Fecha o dropdown após selecionar
         const dropdown = document.getElementById('company-dropdown');
         const arrow = document.getElementById('company-arrow');
         dropdown.classList.remove('open');
         arrow.style.transform = 'rotate(0deg)';
         btn.classList.remove('active');
         
-        // Refresh current view
         if (currentPage === 'inicio') updateDashboard();
         else renderTable(currentPage);
       };
 
-      // --- NAVIGATION ---
       window.changePage = function(page) {
         currentPage = page;
         const config = pagesConfig[page];
         
-        // Update Nav Active State
-        document.querySelectorAll('.nav-item').forEach(el => {
-          if (el.dataset.tab === page) {
+        document.querySelectorAll('.nav-item, .rail-btn').forEach(el => {
+          if (el.dataset.tab === page || el.dataset.target === page) {
             el.classList.add('active', 'bg-red-600/10', 'text-red-500');
             el.classList.remove('text-slate-400');
           } else {
@@ -510,12 +491,8 @@ import '../styles/global.css';
           }
         });
 
-        // Toggle Views
         const dashView = document.getElementById('dashboard-view');
         const listView = document.getElementById('list-view');
-        const headerTitle = document.getElementById('header-title');
-
-        headerTitle.textContent = config.title;
 
         if (config.isDashboard) {
           dashView.classList.remove('hidden');
@@ -529,15 +506,13 @@ import '../styles/global.css';
         }
       };
 
-      // Attach Click Events to Nav Links
-      document.querySelectorAll('.nav-item').forEach(item => {
+      document.querySelectorAll('.nav-item, .rail-btn').forEach(item => {
         item.addEventListener('click', (e) => {
           e.preventDefault();
-          changePage(item.dataset.tab);
+          changePage(item.dataset.tab || item.dataset.target);
         });
       });
 
-      // --- TABLE RENDERING ---
       async function renderTable(type) {
         const tbody = document.getElementById('table-body');
         const thead = document.getElementById('table-header');
@@ -548,7 +523,6 @@ import '../styles/global.css';
           let items = await fetch(`/api/${config.apiName}`).then(r => r.json());
           items = items.error ? [] : items;
 
-          // Filter by active company
           if (empresaAtiva) {
             const empId = empresaAtiva._id.$oid || empresaAtiva._id;
             items = items.filter(i => i.empresaId === empId);
@@ -556,9 +530,7 @@ import '../styles/global.css';
 
           document.getElementById('total-items').textContent = items.length;
 
-          // Headers
-          const headers = type === 'empresa' 
-            ? ['Nome Fantasia', 'Razão Social', 'Status', 'Ações'] 
+          const headers = type === 'empresa' ? ['Nome Fantasia', 'Razão Social', 'Status', 'Ações'] 
             : type === 'equipamento' ? ['IMEI', 'Modelo', 'Status', 'Ações']
             : ['Placa', 'Modelo', 'Proprietário', 'Ações'];
           
@@ -574,25 +546,17 @@ import '../styles/global.css';
             let rowContent = '';
             
             if (type === 'empresa') {
-              rowContent = `<td class="px-6 py-4 text-white">${item.nomeFantasia}</td>
-                            <td class="px-6 py-4 text-slate-400">${item.razaoSocial}</td>
-                            <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">${item.status ? 'Ativo' : 'Inativo'}</span></td>`;
+              rowContent = `<td class="px-6 py-4 text-white">${item.nomeFantasia}</td><td class="px-6 py-4 text-slate-400">${item.razaoSocial}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">${item.status ? 'Ativo' : 'Inativo'}</span></td>`;
             } else if (type === 'equipamento') {
-              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.imei}</td>
-                            <td class="px-6 py-4 text-slate-400">${item.modelo}</td>
-                            <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status === 'Livre' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}">${item.status}</span></td>`;
+              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.imei}</td><td class="px-6 py-4 text-slate-400">${item.modelo}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${item.status === 'Livre' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}">${item.status}</span></td>`;
             } else {
-              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.placa}</td>
-                            <td class="px-6 py-4 text-slate-400">${item.marca} ${item.modelo}</td>
-                            <td class="px-6 py-4 text-slate-400">${item.proprietario || '-'}</td>`;
+              rowContent = `<td class="px-6 py-4 font-mono text-white">${item.placa}</td><td class="px-6 py-4 text-slate-400">${item.marca} ${item.modelo}</td><td class="px-6 py-4 text-slate-400">${item.proprietario || '-'}</td>`;
             }
 
-            rowContent += `<td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <button onclick="editItem('${type}', '${id}')" class="text-blue-400 hover:text-blue-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                <button onclick="deleteItem('${type}', '${id}')" class="text-red-400 hover:text-red-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-              </div>
-            </td>`;
+            rowContent += `<td class="px-6 py-4"><div class="flex items-center gap-2">
+              <button onclick="editItem('${type}', '${id}')" class="text-blue-400 hover:text-blue-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+              <button onclick="deleteItem('${type}', '${id}')" class="text-red-400 hover:text-red-300 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+            </div></td>`;
 
             return `<tr class="hover:bg-slate-800/50 transition-colors">${rowContent}</tr>`;
           }).join('');
@@ -602,7 +566,6 @@ import '../styles/global.css';
         }
       }
 
-      // --- CRUD ACTIONS ---
       window.deleteItem = async function(type, id) {
         if (!confirm('Tem certeza?')) return;
         try {
@@ -632,7 +595,6 @@ import '../styles/global.css';
         const fieldsContainer = document.getElementById('modal-fields');
         let html = '';
 
-        // Company Select (for Equip/Veic)
         if (type !== 'empresa') {
           const empresas = await fetchEmpresas();
           html += `<div class="col-span-2"><label class="block text-sm text-slate-300 mb-1">Empresa</label>
@@ -651,7 +613,6 @@ import '../styles/global.css';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
 
-        // Submit Handler
         const form = document.getElementById('modal-form');
         const newForm = form.cloneNode(true);
         form.parentNode.replaceChild(newForm, form);
@@ -673,7 +634,6 @@ import '../styles/global.css';
         });
       }
 
-      // --- DASHBOARD & MAP ---
       async function updateDashboard() {
         try {
           let veiculos = await fetch('/api/veiculo').then(r => r.json());
@@ -701,7 +661,6 @@ import '../styles/global.css';
           Object.keys(counts).forEach(k => {
             document.getElementById(`count-${k}`).textContent = counts[k];
             document.getElementById(`percent-${k}`).textContent = ((counts[k]/total)*100).toFixed(1) + '%';
-            // Update circle stroke (approx logic)
             const circle = document.getElementById(`circle-${k}`);
             if(circle) circle.setAttribute('stroke-dashoffset', 251.2 - (251.2 * counts[k]/total));
           });
@@ -736,7 +695,6 @@ import '../styles/global.css';
         }
 
         veiculos.forEach(v => {
-          // Dummy coords for demo if not present
           const lat = v.latitude || (Math.random() * 20 - 30); 
           const lng = v.longitude || (Math.random() * 40 - 70);
           
